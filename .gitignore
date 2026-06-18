@@ -1,0 +1,7 @@
+docs
+todo.md
+.env.*
+.env
+node_modules
+.next
+venv
