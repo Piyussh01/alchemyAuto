@@ -1,5 +1,28 @@
 @import "tailwindcss";
 
+body {
+  background-color: #0a1a3f;
+  font-feature-settings: "ss01";
+}
+
+/* Gold-pillar audio bars for the orb */
+.alchemy-visualizer .lk-audio-bar {
+  width: 8px;
+  border-radius: 9999px;
+  background: linear-gradient(to top, #9c7a2e, #f4e7c2);
+  transition: height 80ms ease-out;
+}
+.alchemy-visualizer .lk-audio-bar.lk-highlighted {
+  box-shadow: 0 0 12px rgba(200, 162, 75, 0.9);
+}
+
+/* Slim, dark transcript scrollbar */
+.overflow-y-auto::-webkit-scrollbar { width: 6px; }
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: rgba(200, 162, 75, 0.3);
+  border-radius: 9999px;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

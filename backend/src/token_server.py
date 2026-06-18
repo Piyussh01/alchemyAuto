@@ -110,7 +110,7 @@ def post_token() -> TokenResponse:
 def get_token() -> TokenResponse:
     """Convenience GET (some clients prefer it); identical behavior to POST."""
     return _create_token()
-
+    # left this unsigned for take home 
 
 if __name__ == "__main__":
     import uvicorn
