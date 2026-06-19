@@ -111,7 +111,7 @@ export default function Home() {
             Transmuted to perfection.
           </motion.h1>
           <p className="mt-4 font-mono text-[11px] uppercase tracking-[0.25em] text-zinc-500">
-            Alchemy Auto · Est. 2009 · Sedona, Arizona
+            Alchemy Auto · Est. 2026 · Sedona, Arizona
           </p>
         </div>
 
