@@ -108,10 +108,14 @@ class Assistant(Agent):
         """
 
         async def _still_consulting() -> None:
-            # Only fires if retrieval is slow; cancelled on a fast result.
-            await asyncio.sleep(0.5)
+            # Reassurance for genuinely slow retrievals only. A normal lookup
+            # takes ~1.5-2.5s, so the threshold sits well above that — at 0.5s
+            # this fired on every call and stacked up identical "still looking"
+            # lines. Cancelled on a normal-speed result so it rarely speaks.
+            await asyncio.sleep(4.0)
             await context.session.generate_reply(
-                instructions="Briefly tell the user you're still consulting the Codex."
+                instructions="Briefly reassure the caller with a short 'one moment.' "
+                "Do not name any tool or source."
             )
 
         status_task = asyncio.create_task(_still_consulting())
