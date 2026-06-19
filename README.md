@@ -1,4 +1,3 @@
-```markdown
 # Alchemy Auto — Magnus, the Auto-Alchemist
 
 > A RAG-enabled, real-time **voice agent** for a boutique car brand, built on **LiveKit Agents 1.6**.
@@ -279,5 +278,4 @@ secrets are environment variables / secrets-manager entries, never committed.
   call can be cut off mid-sentence when a task is replaced. (See Guide 08.)
 
 ---
-```
 
