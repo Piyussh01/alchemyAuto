@@ -7,7 +7,7 @@ import { RoomConfiguration, RoomAgentDispatch } from "@livekit/protocol";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const AGENT_NAME = "magnus"; // must match the backend agent_name (canonical spec §6)
+const AGENT_NAME = "magnus"; // must match the backend agent_name
 
 export async function POST() {
   const url = process.env.LIVEKIT_URL;

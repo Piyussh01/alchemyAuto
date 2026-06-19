@@ -6,6 +6,7 @@ livekit-api                                # token server (LiveKit JWT signing)
 # --- RAG (Codex retrieval) ---
 llama-index~=0.14
 llama-index-embeddings-openai
+llama-index-readers-file                   # provides PDFReader (+pypdf) so SimpleDirectoryReader parses the Codex PDF, not raw bytes
 
 # --- Tools ---
 tavily-python                              # web_search tool
