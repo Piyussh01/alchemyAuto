@@ -24,11 +24,11 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 COPY src/ ./src/
 COPY data/ ./data/
 
-# 3. Bake the model weights into the image at BUILD time.
-#    `download-files` fetches the Silero VAD + LiveKit turn-detector weights.
-#    Doing it here means: fast cold start (no first-call download stall) and
-#    no runtime dependency on Hugging Face being reachable from Fargate.
-RUN python src/agent.py download-files
+# 3. Model weights (Silero VAD + turn-detector) are fetched at RUNTIME on first
+#    start. We intentionally do NOT run `download-files` at build time: it executes
+#    onnxruntime, which SIGILLs under the emulated/virtualized build CPU. On real
+#    Fargate hardware onnxruntime runs natively, so the only cost is a one-time
+#    download on the worker's first cold start.
 
 # 4. Run as a non-root user.
 RUN useradd --create-home --uid 10001 appuser \
@@ -39,5 +39,5 @@ USER appuser
 EXPOSE 8081
 
 # Production worker entrypoint. `start` (NOT `dev`) = no hot reload, prod logging.
-# App Runner overrides this CMD with the token-server command (see §6).
-CMD ["python", "src/agent.py", "start"]
+# Module form so `src.*` package imports resolve from /app.
+CMD ["python", "-m", "src.agent", "start"]

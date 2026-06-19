@@ -17,10 +17,10 @@ from livekit.agents import (
 from livekit.agents.llm import function_tool
 from livekit.plugins import anthropic, cartesia, deepgram, silero
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
-from .rag.rag import query_compendium
 
-from prompts import MAGNUS_INSTRUCTIONS
-from .tools.inventory import (                                          
+from src.prompts import MAGNUS_INSTRUCTIONS
+from src.rag.rag import query_compendium
+from src.tools.inventory import (
     search_vehicles,
     format_results_for_voice,
     insert_test_drive,
