@@ -2,7 +2,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import CallView from "@/components/CallView";
 import { HeroCar, BodySilhouette, AlchemyMark } from "@/components/CarSvg";
 import {
@@ -30,6 +30,7 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
 
   const startCall = useCallback(async () => {
+    if (connection) return; // a call is already live in the floating widget
     setLoading(true);
     setError(null);
     try {
@@ -41,7 +42,7 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [connection]);
 
   const endCall = useCallback(() => setConnection(null), []);
 
@@ -115,7 +116,8 @@ export default function Home() {
           </p>
         </div>
 
-        {/* floating "Talk to Magnus" launcher (the PiP analog) */}
+        {/* floating "Talk to Magnus" launcher — hidden once the call widget is up */}
+        {!connection && (
         <motion.button
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -135,6 +137,7 @@ export default function Home() {
             </span>
           </span>
         </motion.button>
+        )}
       </section>
 
       {/* ===== THE COLLECTION ===== */}
@@ -235,21 +238,10 @@ export default function Home() {
         </p>
       </footer>
 
-      {/* ===== CALL OVERLAY (dark "ritual" mode) ===== */}
-      <AnimatePresence>
-        {connection && (
-          <motion.div
-            key="call"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.35 }}
-            className="fixed inset-0 z-50 overflow-y-auto bg-[#0A1A3F] text-zinc-100"
-          >
-            <CallView serverUrl={connection.serverUrl} token={connection.participantToken} onEnd={endCall} />
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* ===== FLOATING CALL WIDGET — page stays visible & scrollable behind it ===== */}
+      {connection && (
+        <CallView serverUrl={connection.serverUrl} token={connection.participantToken} onEnd={endCall} />
+      )}
     </div>
   );
 }
