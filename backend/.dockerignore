@@ -1,0 +1,7 @@
+.venv
+hf_cache
+__pycache__
+**/__pycache__
+*.pyc
+.env
+.env.*

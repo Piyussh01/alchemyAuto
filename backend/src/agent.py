@@ -16,7 +16,6 @@ from livekit.agents import (
 )
 from livekit.agents.llm import function_tool
 from livekit.plugins import anthropic, cartesia, deepgram, silero
-from livekit.plugins.turn_detector.multilingual import MultilingualModel
 
 from src.prompts import MAGNUS_INSTRUCTIONS
 from src.rag.rag import query_compendium
@@ -217,7 +216,10 @@ async def entrypoint(ctx: JobContext):
         llm=anthropic.LLM(model="claude-haiku-4-5"),
         tts=cartesia.TTS(),  # Cartesia Sonic
         vad=ctx.proc.userdata["vad"],  # cached in prewarm()
-        turn_detection=MultilingualModel(),
+        # Turn-taking via VAD + STT endpointing. We intentionally omit the
+        # livekit turn-detector plugin: its onnx weights aren't bundled and must
+        # be pre-downloaded (it raises rather than fetching at runtime). VAD
+        # endpointing needs no extra model and is reliable for a voice demo.
     )
 
     await session.start(agent=Assistant(), room=ctx.room)
