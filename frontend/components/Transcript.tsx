@@ -5,30 +5,38 @@ import { useEffect, useRef } from "react";
 import { useTranscriptions, useLocalParticipant } from "@livekit/components-react";
 import { motion } from "framer-motion";
 
-export default function Transcript() {
+/**
+ * Live transcript. `embedded` drops the outer card chrome/title so it can fill a
+ * floating widget; standalone it renders as the "Transmutation Log" card.
+ */
+export default function Transcript({ embedded = false }: { embedded?: boolean }) {
   const transcriptions = useTranscriptions();
   const { localParticipant } = useLocalParticipant();
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to the latest line whenever the transcript updates.
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [transcriptions]);
 
-  return (
-    <div className="flex h-full max-h-[70vh] flex-col rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl">
-      <div className="border-b border-white/10 px-5 py-3 text-xs uppercase tracking-[0.25em] text-[#E7CF92]">
-        Transmutation Log
-      </div>
+  const shell = embedded
+    ? "flex h-full min-h-0 flex-col"
+    : "flex h-full max-h-[70vh] flex-col rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl";
 
-      <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
+  return (
+    <div className={shell}>
+      {!embedded && (
+        <div className="border-b border-white/10 px-5 py-3 text-xs uppercase tracking-[0.25em] text-[#E7CF92]">
+          Transmutation Log
+        </div>
+      )}
+
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-4">
         {transcriptions.length === 0 && (
           <p className="text-sm text-zinc-500">Speak to begin the ritual…</p>
         )}
 
         {transcriptions.map((t) => {
-          const fromLocal =
-            t.participantInfo?.identity === localParticipant?.identity;
+          const fromLocal = t.participantInfo?.identity === localParticipant?.identity;
           return (
             <motion.div
               key={t.streamInfo?.id ?? `${t.participantInfo?.identity}-${t.text.slice(0, 12)}`}

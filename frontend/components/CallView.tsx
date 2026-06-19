@@ -1,6 +1,7 @@
 // components/CallView.tsx
 "use client";
 
+import { useState } from "react";
 import {
   LiveKitRoom,
   RoomAudioRenderer,
@@ -9,7 +10,7 @@ import {
   useRoomContext,
 } from "@livekit/components-react";
 import { Track } from "livekit-client";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import AudioOrb from "@/components/AudioOrb";
 import Transcript from "@/components/Transcript";
 
@@ -19,6 +20,11 @@ type Props = {
   onEnd: () => void;
 };
 
+/**
+ * Floating, non-blocking call widget. `display: contents` on the room means the
+ * fixed-positioned widget anchors to the viewport, so the landing page stays fully
+ * visible and scrollable behind it while the call is live.
+ */
 export default function CallView({ serverUrl, token, onEnd }: Props) {
   return (
     <LiveKitRoom
@@ -28,71 +34,91 @@ export default function CallView({ serverUrl, token, onEnd }: Props) {
       audio
       video={false}
       onDisconnected={onEnd}
-      className="min-h-screen"
+      className="contents"
     >
       {/* CRITICAL: renders the agent's audio. Without this you hear nothing. */}
       <RoomAudioRenderer />
-      <CallStage onEnd={onEnd} />
+      <FloatingCall onEnd={onEnd} />
     </LiveKitRoom>
   );
 }
 
-/** Inner component: lives *inside* LiveKitRoom so it can use room hooks. */
-function CallStage({ onEnd }: { onEnd: () => void }) {
+const STATE_LABEL: Record<string, string> = {
+  disconnected: "Disconnected",
+  connecting: "Summoning Magnus…",
+  initializing: "Summoning Magnus…",
+  listening: "Listening…",
+  thinking: "Consulting the Codex…",
+  speaking: "Speaking",
+};
+
+function FloatingCall({ onEnd }: { onEnd: () => void }) {
   const { state } = useVoiceAssistant();
   const room = useRoomContext();
+  const [open, setOpen] = useState(true);
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-5xl flex-col px-6 py-8">
-      {/* Header */}
-      <header className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="h-2.5 w-2.5 animate-pulse rounded-full bg-[#C8A24B] shadow-[0_0_10px_2px_rgba(200,162,75,0.8)]" />
-          <span className="text-sm uppercase tracking-[0.3em] text-[#E7CF92]">Alchemy Auto</span>
+    <motion.div
+      initial={{ opacity: 0, y: 24, scale: 0.96 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className="fixed bottom-5 right-5 z-50 flex w-[min(92vw,380px)] flex-col overflow-hidden rounded-3xl border border-[#C8A24B]/25 bg-[#0A1A3F]/95 text-zinc-100 shadow-[0_24px_70px_-20px_rgba(0,0,0,0.75)] backdrop-blur-xl"
+      style={{ maxHeight: "min(80vh, 660px)" }}
+    >
+      {/* header: compact orb + state + collapse */}
+      <div className="flex items-center gap-3 border-b border-white/10 px-4 py-3">
+        <div className="-my-1 shrink-0">
+          <AudioOrb size={56} />
         </div>
-        <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs capitalize text-zinc-300">
-          {state}
-        </span>
-      </header>
-
-      {/* Orb + transcript */}
-      <div className="mt-8 grid flex-1 gap-8 lg:grid-cols-[1fr_minmax(0,420px)]">
-        <div className="flex flex-col items-center justify-center">
-          <AudioOrb />
-          <p className="mt-8 text-center text-sm text-zinc-400">
-            {state === "listening" && "Magnus is listening…"}
-            {state === "thinking" && "Consulting the Codex…"}
-            {state === "speaking" && "Magnus is speaking"}
-            {(state === "connecting" || state === "initializing") && "Summoning Magnus…"}
-            {state === "disconnected" && "Disconnected"}
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-semibold leading-tight">Magnus</p>
+          <p className="truncate font-mono text-[10px] uppercase tracking-[0.2em] text-[#E7CF92]">
+            {STATE_LABEL[state] ?? state}
           </p>
         </div>
-
-        <Transcript />
+        <button
+          onClick={() => setOpen((o) => !o)}
+          aria-label={open ? "Collapse transcript" : "Expand transcript"}
+          className="rounded-full border border-white/15 px-2.5 py-1 text-xs text-zinc-300 transition hover:bg-white/10"
+        >
+          {open ? "–" : "+"}
+        </button>
       </div>
 
-      {/* Glassmorphism control bar */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="mt-8 flex items-center justify-center gap-4 self-center rounded-2xl border border-white/10 bg-white/5 px-6 py-4 backdrop-blur-xl"
-      >
+      {/* transcript (scrolls; page scrolls behind the widget) */}
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            key="body"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="flex min-h-0 flex-1 flex-col overflow-hidden"
+          >
+            <div className="min-h-0 flex-1">
+              <Transcript embedded />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* controls */}
+      <div className="flex items-center justify-between gap-3 border-t border-white/10 px-4 py-3">
         <TrackToggle
           source={Track.Source.Microphone}
           showIcon
-          className="flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-5 py-2.5 text-sm text-zinc-100 transition hover:bg-white/10"
+          className="flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-sm text-zinc-100 transition hover:bg-white/10"
         >
           Mic
         </TrackToggle>
-
         <button
           onClick={() => room.disconnect()}
-          className="flex items-center gap-2 rounded-full bg-red-500/90 px-6 py-2.5 text-sm font-medium text-white transition hover:bg-red-500"
+          className="flex items-center gap-2 rounded-full bg-red-500/90 px-5 py-2 text-sm font-medium text-white transition hover:bg-red-500"
         >
-          <span className="text-base">■</span> End Call
+          <span className="text-base leading-none">■</span> End Call
         </button>
-      </motion.div>
-    </div>
+      </div>
+    </motion.div>
   );
 }

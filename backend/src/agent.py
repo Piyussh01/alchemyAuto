@@ -92,14 +92,17 @@ class Assistant(Agent):
 
     @function_tool()
     async def query_compendium(self, context: RunContext, query: str) -> str:
-        """Consult the Alchemy Codex — the owner's compendium — for specific facts about
-        our vehicles: battery and powertrain warranties, range and tow ratings, charging
-        specs, maintenance intervals, the Philosopher's production cap, and similar
-        owner/spec details. Use this for any factual question about an Alchemy Auto model.
+        """Consult the Alchemy Codex — Alchemy Auto's owner's compendium — for any factual
+        detail we have written down: vehicle specs, battery and powertrain warranties,
+        range and tow ratings, charging specs, maintenance schedules, AND our financing and
+        leasing programs (APR tiers, money factors, down payments), incentives, the loyalty
+        program, and the Aurelius Owner's Club. Use this for any question about money,
+        financing, leasing, warranties, servicing, charging, membership, or any Alchemy
+        Auto model or program.
 
         Args:
             query: The caller's question, phrased for retrieval (e.g.
-                "Aurelius battery warranty term").
+                "Aurelius battery warranty term" or "leasing APR tiers").
 
         Returns the answer drawn from the Codex as a short spoken paragraph.
         """
